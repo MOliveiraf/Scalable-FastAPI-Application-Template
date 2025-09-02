@@ -6,4 +6,7 @@ order_router = APIRouter(prefix="/orders", tags=["orders"])
 
 @order_router.get("/")
 async def get_orders():
+    """
+    This is our system´s standard. All order routes require authentication    
+    """
     return {"message": "You have accessed orders route"}
