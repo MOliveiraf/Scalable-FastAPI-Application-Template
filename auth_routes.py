@@ -2,40 +2,37 @@ from fastapi import APIRouter, Depends, HTTPException
 from models import User
 from dependencies import get_section
 from main import bcrypt_context
-from schemas import SchemaUser
+from schemas import SchemaUser, SchemaLogin
 from sqlalchemy.orm import Session
 
-# Router dedicated to authentication-related endpoints.
-# All routes here will be prefixed with "/auth" and grouped under the "auth" tag.
+# Router for authentication endpoints
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
+
+# Simple token generator (placeholder, not secure for production)
+def token_create(user_id):
+    token = f"kjashdahsh{user_id}"
+    return token
 
 
 @auth_router.get("/")
 async def home():
-    """
-    Root endpoint for authentication routes.
-    Provides a simple response to confirm accessibility.
-    """
+    """Health-check route for authentication."""
     return {"message": "You have accessed the authentication route"}
 
 
 @auth_router.post("/create_account")
 async def create_account(schema_user: SchemaUser, session: Session = Depends(get_section)):
     """
-    Endpoint to create a new user account.
-    - Verifies if a user with the given email already exists.
-    - Hashes the password before saving.
-    - Persists the user in the database.
+    Register a new user.
+    - Rejects if email already exists.
+    - Hashes password before saving.
     """
-    # Verify if the email is already registered
     user = session.query(User).filter(User.email == schema_user.email).first()
     if user:
         raise HTTPException(status_code=400, detail="A user already exists with this email address")
 
-    # Hash the provided password
     hashed_password = bcrypt_context.hash(schema_user.password)
 
-    # Create a new User instance with hashed password
     new_user = User(
         schema_user.name,
         schema_user.email,
@@ -48,3 +45,21 @@ async def create_account(schema_user: SchemaUser, session: Session = Depends(get
     session.refresh(new_user)
 
     return {"message": f"User registered successfully: {schema_user.email}"}
+
+
+@auth_router.post("/login")
+async def login(schema_login: SchemaLogin, session: Session = Depends(get_section)):
+    """
+    Authenticate a user and return an access token.
+    - Validates email.
+    - Generates a fake JWT token (placeholder).
+    """
+    user = session.query(User).filter(User.email == schema_login.email).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="User not found")
+
+    access_token = token_create(user.id)
+    return {
+        "access_token": access_token,
+        "token_type": "Bearer"
+    }

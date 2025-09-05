@@ -30,13 +30,7 @@ class User(Base):
 
 # Order Model
 class Order(Base):
-    __tablename__ = "orders"
-
-    # ORDER_STATUS = (
-    #     ("PENDING", "PENDING"),
-    #     ("CANCELED", "CANCELED"),
-    #     ("COMPLETED", "COMPLETED")
-    # )
+    __tablename__ = "orders"  
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     status = Column("status", String)
