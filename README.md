@@ -1,23 +1,29 @@
 # Scalable FastAPI Application Template
 
-A clean and modular FastAPI project template designed to grow with multiple endpoints, including authentication, order management, and database integration. This project is structured to make adding new routes, models, and features simple and maintainable.
+A clean, modular, and production-ready **FastAPI** project template designed for scalability.  
+This project provides authentication, order management, and database integration, following best practices for maintainability and growth.
 
-## Features
+---
 
-- Modular route organization (`auth`, `orders`, etc.)
-- Ready-to-use FastAPI application setup
-- Database integration with SQLAlchemy and Alembic
-- Automatic migrations support
-- Easy to extend with new endpoints and models
-- Async route support
-- Clean and professional code structure
+## 🚀 Features
 
-## Installation
+- ✅ Modular route organization (`auth`, `orders`, etc.)
+- ✅ Secure user authentication with **bcrypt** password hashing
+- ✅ Database integration with **SQLAlchemy** and **Alembic**
+- ✅ Automatic database migrations
+- ✅ Easy to extend with new endpoints and models
+- ✅ Async route support for performance
+- ✅ Clean and professional code structure
 
-1. Clone the repository:
+---
+
+## 🔧 Installation
+
+1. **Clone the repository**:
 ```bash
 git clone <your-repo-url>
 cd <your-repo-folder>
+
 ```
 
 2. Create a virtual environment (recommended):
@@ -28,12 +34,23 @@ source venv/bin/activate   # On Windows: venv\Scripts\activate
 3. Install dependencies:
 ```
 pip install: 
-    fastapi
-    uvicorn
-    python-jose[cryptography]
-    python-dotenv
-    python-multipart
-    sqlalchemy alembic sqlalchemy-utils
+    fastapi → The main web framework. Lets you build high-performance APIs quickly with Python type hints and automatic docs (Swagger UI).
+
+    uvicorn → An ASGI server. Runs your FastAPI app and handles HTTP requests/responses efficiently.
+
+    python-jose[cryptography] → Handles JSON Web Tokens (JWT). Used for securely encoding/decoding authentication tokens.
+
+    python-dotenv → Loads environment variables from a .env file into your project (e.g., database URL, secret keys).
+
+    python-multipart → Enables form data and file upload handling in FastAPI (e.g., sending images or forms in requests).
+
+    sqlalchemy → The ORM (Object-Relational Mapper) for database interactions. Lets you use Python classes instead of writing raw SQL.
+
+    alembic → Migration tool for SQLAlchemy. Helps version and update your database schema safely over time.
+
+    sqlalchemy-utils → Extra tools for SQLAlchemy (like advanced field types, validators, helpers).
+
+    bcrypt → Password hashing library. Ensures user passwords are securely stored by hashing + salting.
 ```
 4. Set up the database and run migrations:
 ```
@@ -50,14 +67,36 @@ uvicorn main:app --reload
 ```
 project/
 ├── main.py             # App initialization and router inclusion
-├── auth_routes.py      # Authentication endpoints
-├── order_routes.py     # Order endpoints
-├── models.py           # SQLAlchemy models
+├── auth_routes.py      # Authentication endpoints (register, login, hashing)
+├── order_routes.py     # Order endpoints (create and manage orders)
+├── models.py           # SQLAlchemy models (User, Order, OrderItem)
+├── schemas.py          # Pydantic schemas for validation
+├── dependencies.py     # Dependency injections (DB session, etc.)
 ├── alembic.ini         # Alembic configuration
 ├── alembic/            # Alembic migrations folder
-├── banco.db            # SQLite database file
-├── README.md
-└── requirements.txt    # Optional: to list dependencies
-
-
+├── banco.db            # SQLite database file (development only)
+├── README.md           # Project documentation
+└── requirements.txt    # Dependencies list
 ```
+
+6. 🔑 Authentication & Security
+
+* Passwords are never stored in plain text.
+* User passwords are hashed using bcrypt with a random salt and configurable cost factor.
+* During login, bcrypt re-hashes the provided password and compares it with the stored hash.
+* This ensures strong protection against brute-force and rainbow table attacks.
+
+Example workflow:
+
+I-Register → password is hashed before being stored in the database.
+
+II-Login → password is verified against the stored hash.
+
+III-Access token (Bearer) is generated for session handling.
+
+7. 🛠️ Future Improvements
+* JWT authentication with refresh tokens
+* Role-based access control (admin/user)
+* Testing with pytest
+* Docker support for containerized deployments
+* CI/CD integration
