@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from passlib.context import CryptContext
 from dotenv import load_dotenv
 import os
 
@@ -8,12 +7,11 @@ load_dotenv()
 
 # Secret key for authentication and security purposes
 SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
 
 # Initialize the FastAPI application (must be created before routers are imported)
 app = FastAPI()
-
-# Configure password hashing with bcrypt
-bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Import routers (must be done after app initialization)
 from auth_routes import auth_router

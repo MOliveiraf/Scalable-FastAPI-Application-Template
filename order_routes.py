@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from dependencies import get_section
+from dependencies import get_session
 from schemas import SchemaOrder
 from models import Order
 
@@ -19,7 +19,7 @@ async def get_orders():
 
 
 @order_router.post("/order")
-async def post_orders(schema_order: SchemaOrder, session: Session = Depends(get_section)):
+async def post_orders(schema_order: SchemaOrder, session: Session = Depends(get_session)):
     """
     Endpoint to create a new order.
     - Receives the user ID via SchemaOrder.
