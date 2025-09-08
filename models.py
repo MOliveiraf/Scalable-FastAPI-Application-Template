@@ -8,7 +8,6 @@ db = create_engine("sqlite:///banco.db")
 # Base declarativa para as tabelas
 Base = declarative_base()
 
-
 # User Model
 class User(Base):
     __tablename__ = "users"
