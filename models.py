@@ -1,24 +1,25 @@
 from sqlalchemy import Column, Integer, String, Boolean, Float, ForeignKey, create_engine
-from sqlalchemy.orm import declarative_base
-from sqlalchemy_utils.types import ChoiceType
+from sqlalchemy.orm import declarative_base, relationship
 
-# Cria a conexão do banco
+# Create database connection
 db = create_engine("sqlite:///banco.db")
 
-# Base declarativa para as tabelas
+# Base for models
 Base = declarative_base()
 
 # User Model
 class User(Base):
     __tablename__ = "users"
 
-    id = Column("id", Integer, primary_key=True, autoincrement=True)
-    name = Column("name", String)
-    email = Column("email", String, nullable=False)
-    password = Column("password", String)
-    active = Column("active", Boolean)
-    admin = Column("admin", Boolean, default=False)
-    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String)
+    email = Column(String, nullable=False, unique=True)
+    password = Column(String)
+    active = Column(Boolean, default=True)
+    admin = Column(Boolean, default=False)
+
+    orders = relationship("Order", back_populates="user")
+
     def __init__(self, name, email, password, active=True, admin=False):
         self.name = name
         self.email = email
@@ -32,11 +33,14 @@ class Order(Base):
     __tablename__ = "orders"  
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    status = Column("status", String)
-    user_id = Column("user", ForeignKey("users.id"))
-    price = Column("price", Float)
+    status = Column(String, default="PENDING")
+    user_id = Column(Integer, ForeignKey("users.id"))
+    price = Column(Float, default=0.0)
 
-    def __init__(self, user_id, status="PENDING", price=0):
+    user = relationship("User", back_populates="orders")
+    items = relationship("OrderItem", back_populates="order")
+
+    def __init__(self, user_id, status="PENDING", price=0.0):
         self.user_id = user_id
         self.status = status
         self.price = price
@@ -47,11 +51,13 @@ class OrderItem(Base):
     __tablename__ = "order_items"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    quantity = Column("quantity", Integer)
-    taste = Column("taste", String)
-    size = Column("size", String)
-    unit_price = Column("unit_price", Float)
-    order_id = Column("order", ForeignKey("orders.id"))      
+    quantity = Column(Integer)
+    taste = Column(String)
+    size = Column(String)
+    unit_price = Column(Float)
+    order_id = Column(Integer, ForeignKey("orders.id"))      
+
+    order = relationship("Order", back_populates="items")
 
     def __init__(self, quantity, taste, size, unit_price, order_id):
         self.quantity = quantity

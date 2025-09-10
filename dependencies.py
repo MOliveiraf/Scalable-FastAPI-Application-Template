@@ -3,7 +3,7 @@ from config import SECRET_KEY, ALGORITHM
 from models import db, User
 from sqlalchemy.orm import sessionmaker, Session
 from jose import jwt, JWTError
-from security import oauth2_schema
+from security import oauth2_scheme
 
 # Provide a database session per request
 def get_session():
@@ -22,7 +22,7 @@ def get_session():
 
 # Validate JWT token and return the authenticated user
 def token_verification(
-    token: str = Depends(oauth2_schema),
+    token: str = Depends(oauth2_scheme),
     session: Session = Depends(get_session)
 ):
     """

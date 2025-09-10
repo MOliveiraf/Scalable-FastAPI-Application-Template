@@ -5,4 +5,4 @@ from fastapi.security import OAuth2PasswordBearer
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # OAuth2 scheme for token authentication (login via form)
-oauth2_schema = OAuth2PasswordBearer(tokenUrl="auth/login-form")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login-form")
