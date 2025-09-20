@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from dependencies import get_session, token_verification
-from schemas import SchemaOrder, OrderItemScheme
+from schemas import SchemaOrder, SchemaOrderItem', SchemaOrderResponse
 from models import Order, User, OrderItem
+from typing import List
 
 # ---------------------------------------------------------------------------- 
 # Orders Router
@@ -117,7 +118,7 @@ async def order_list(
 @order_router.post("/order/item-add/{order_id}")
 async def add_order_item(
     order_id: int,
-    order_item_scheme: OrderItemScheme,
+    order_item_scheme: SchemaOrderItem',
     session: Session = Depends(get_session),
     user: User = Depends(token_verification),
 ):
@@ -131,7 +132,7 @@ async def add_order_item(
 
     Args:
         order_id (int): ID of the order to update.
-        order_item_scheme (OrderItemScheme): Item payload (quantity, taste, size, unit_price).
+        order_item_scheme (SchemaOrderItem'): Item payload (quantity, taste, size, unit_price).
         session (Session): Database session dependency.
         user (User): Authenticated user.
 
@@ -174,3 +175,118 @@ async def add_order_item(
         },
         "order_total": order.price,
     }
+
+
+@order_router.post("/order/remove-item/{order_item_id}")
+async def remove_order_item(
+    order_item_id: int,
+    session: Session = Depends(get_session),
+    user: User = Depends(token_verification),
+):   
+    # Find the item
+    order_item = session.query(OrderItem).filter(OrderItem.id == order_item_id).first()
+    if not order_item:
+        raise HTTPException(status_code=400, detail="Order item does not exist")
+
+    # Get the parent order
+    order = session.query(Order).filter(Order.id == order_item.order_id).first()
+
+    # Authorization check
+    if not user.admin and user.id != order.user_id:
+        raise HTTPException(
+            status_code=401,
+            detail="You are not authorized to remove items from this order."
+        )
+
+    # Remove item and update order price
+    session.delete(order_item)
+    order.price_calculate()
+    session.commit()
+    session.refresh(order)
+
+    return {
+        "message": "Item removed successfully",
+        "quantity_order_item": len(order.items),
+        "order": order
+    }
+
+
+# Complete an order
+@order_router.post("/order/complete/{order_id}")
+async def complete_order(
+    order_id: int,
+    session: Session = Depends(get_session),
+    user: User = Depends(token_verification),
+):
+    """
+    Mark an order as completed by its ID.
+
+    Rules:
+    - Returns 400 if the order does not exist.
+    - Only the order owner or an admin can complete it.
+    - Updates the order status to 'COMPLETED'.
+    """
+    order = session.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=400, detail="Order not found")
+    if not user.admin and user.id != order.user_id:
+        raise HTTPException(
+            status_code=401, 
+            detail="You are not authorized to complete this order."
+        )
+
+    order.status = "COMPLETED"
+    session.commit()
+
+    return {
+        "message": f"Order ID {order.id} was successfully completed",
+        "order": order,
+    }
+
+
+# Get a single order
+@order_router.get("/order/{order_id}")
+async def get_order(
+    order_id: int,
+    session: Session = Depends(get_session),
+    user: User = Depends(token_verification),
+):
+    """
+    Retrieve one order by its ID.
+
+    Rules:
+    - Returns 400 if the order does not exist.
+    - Only the order owner or an admin can view it.
+    """
+    order = session.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=400, detail="Order not found")
+    if not user.admin and user.id != order.user_id:
+        raise HTTPException(
+            status_code=401, 
+            detail="You are not authorized to view this order."
+        )
+
+    return {
+        "quantity_order_item": len(order.items),
+        "order": order
+    }
+
+# List all orders for the authenticated user
+@order_router.get("/orders/me", response_model=List[SchemaOrderResponse])
+async def get_my_orders(
+    session: Session = Depends(get_session), 
+    user: User = Depends(token_verification)
+):
+    """
+    Retrieve all orders belonging to the authenticated user.
+
+    Args:
+        session (Session): Database session dependency.
+        user (User): Authenticated user.
+
+    Returns:
+        dict: A list of the user's own orders.
+    """  
+    orders = session.query(Order).filter(Order.user_id == user.id).all()
+    return orders
